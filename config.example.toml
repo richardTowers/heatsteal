@@ -1,0 +1,68 @@
+# heatsteal config. Copy to /etc/heatsteal/config.toml and edit.
+# Unknown keys are an error, so a typo stops the service rather than being ignored.
+
+hardware = "fake"          # "fake" (laptop + simulator) | "pi" (real GPIO and 1-Wire)
+
+[relays]                   # BCM pin numbers; the Waveshare board is active-low
+peltier   = 26             # CH1, physical pin 37
+cold_pump = 20             # CH2, physical pin 38
+hot_pump  = 21             # CH3, physical pin 40
+
+[sensors]                  # logical name -> 1-Wire address (`heatsteal sensors` lists them)
+cold_flow   = "28-000000000001"   # cold loop, leaving the box towards the headband
+cold_return = "28-000000000002"   # cold loop, coming back from the headband
+hot_flow    = "28-000000000003"   # hot loop, leaving the box towards the vest
+hot_return  = "28-000000000004"   # hot loop, coming back from the vest
+
+[offsets]                  # °C, added to raw readings. Paste the output of `heatsteal calibrate`.
+cold_flow = 0.0
+cold_return = 0.0
+hot_flow = 0.0
+hot_return = 0.0
+
+[flow]                     # measured by hand, g/s (pump into a cup for 60 s, weigh, divide by 60)
+cold = 1.11
+hot  = 1.11
+specific_heat = 4.18       # J/(g·K); water
+
+[timing]                   # seconds unless stated
+sample_s = 1.0             # sampler/controller period
+sensor_stale_s = 5         # a probe with no good reading for this long is stale (faults when active)
+prime_s = 10               # minimum PRIMING time; also needs every probe fresh
+cooldown_s = 60            # pumps-only time after stop/reset before IDLE
+warmup_s = 120             # dead-pump heuristics only start this long into RUNNING
+max_run_minutes = 120      # session length cap; ends in COOLDOWN, not FAULT
+
+[limits]
+hot_max_c = 41.0           # FAULT if hot_flow reaches this. Skin contact above 44 °C injures.
+cold_min_c = 5.0           # FAULT if cold_flow falls to this
+hot_rise_max_k_per_min = 3.0    # dead hot pump? hot_flow rising faster than this
+cold_fall_max_k_per_min = 3.0   # dead cold pump? cold_flow falling faster than this
+loop_dt_max_k = 12.0       # dead pump? either loop's ΔT above this
+min_loop_dt_k = 0.5        # Peltier on but a loop's ΔT below this for min_loop_dt_hold_s:
+min_loop_dt_hold_s = 30    #   the 45 °C cutout may have tripped (always a warning)
+dead_pump_action = "warn"  # "warn" | "fault" for all three heuristics; keep "warn" until tuned
+# Optional per-heuristic overrides ("" = use dead_pump_action):
+hot_rise_action = ""
+cold_fall_action = ""
+loop_dt_action = ""
+
+[storage]
+db_path = "/run/heatsteal/heatsteal.db"   # tmpfs; the SD card is never written during a session
+retention_hours = 24       # rows older than this are deleted (checked once a minute)
+archive_dir = ""           # empty = disabled; else VACUUM INTO here at the end of each session
+commit_s = 5               # batch commit interval
+
+[web]
+host = "0.0.0.0"
+port = 8080
+control_token = ""         # empty = no auth; else every POST needs "Authorization: Bearer <token>"
+grafana_url = "http://heatsteal.local:3000"
+
+[sim]                      # only used when hardware = "fake"
+ambient_c = 22.0
+fault = "none"             # "none" | "stale_probe" | "dead_pump" | "runaway_hot"
+fault_probe = "hot_flow"   # which probe goes silent for "stale_probe"
+fault_loop = "hot"         # which pump silently stops for "dead_pump"
+fault_after_s = 0          # seconds after the Peltier first turns on
+noise = true               # add sensor noise and 1/16 °C quantisation
