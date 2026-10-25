@@ -15,6 +15,7 @@ change in the hardware.
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -324,11 +325,27 @@ def draw_control() -> schemdraw.Drawing:
     return d
 
 
+def _add_white_background(path: Path) -> None:
+    """Fill the whole viewBox with white, so the diagram reads on dark themes.
+
+    A CSS background-color on the <svg> isn't reliably painted when the file
+    is shown through an <img> tag (as GitHub does); a rect always is.
+    """
+    svg = path.read_text(encoding="utf-8")
+    m = re.search(r'<svg[^>]*viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"[^>]*>', svg)
+    if m is None:
+        raise ValueError(f"{path}: no viewBox")
+    x, y, w, h = m.groups()
+    rect = f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="white" />'
+    path.write_text(svg[: m.end()] + rect + svg[m.end() :], encoding="utf-8")
+
+
 def render_schematics(out_dir: Path) -> list[Path]:
     paths = []
     for name, fn in (("power", draw_power), ("control", draw_control)):
         path = out_dir / f"{name}.svg"
         fn().save(str(path))
+        _add_white_background(path)
         paths.append(path)
     return paths
 
