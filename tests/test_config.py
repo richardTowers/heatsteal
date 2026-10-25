@@ -11,7 +11,7 @@ def test_example_config_loads():
 
     cfg = config_mod.load(Path(__file__).parent.parent / "config.example.toml")
     assert cfg.hardware == "fake"
-    assert cfg.relays.peltier == 26 and cfg.relays.cold_pump == 20 and cfg.relays.hot_pump == 21
+    assert cfg.relays.cold_pump == 26 and cfg.relays.hot_pump == 20 and cfg.relays.peltier == 21
     assert cfg.limits.hot_max_c == 41.0
     assert cfg.timing.sensor_stale_s == 5.0
     assert cfg.flow.specific_heat == 4.18
@@ -43,7 +43,7 @@ def test_per_heuristic_override():
         ({"hardware": "fake", "sensors": {**ADDRESSES, "hot_flow": "28-000000000001"}}, "share an address"),
         ({"hardware": "fake", "sensors": {**ADDRESSES, "hot_flow": "nonsense"}}, "not a DS18B20"),
         ({"hardware": "gpio", "sensors": dict(ADDRESSES)}, "hardware must be"),
-        ({"hardware": "fake", "sensors": dict(ADDRESSES), "relays": {"peltier": 20}}, "own pin"),
+        ({"hardware": "fake", "sensors": dict(ADDRESSES), "relays": {"peltier": 26}}, "own pin"),
         ({"hardware": "fake", "sensors": dict(ADDRESSES), "limits": {"hot_max_c": "41"}}, "expected a number"),
         ({"hardware": "fake", "sensors": dict(ADDRESSES), "limits": {"hot_max_c": 46.0}}, "44"),
         (
