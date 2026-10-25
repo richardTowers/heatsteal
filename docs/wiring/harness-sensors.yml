@@ -1,0 +1,56 @@
+# Sensor-side harness. Render with: python docs/wiring/build.py
+metadata:
+  title: heatsteal sensor harness
+
+connectors:
+  J1:
+    type: Raspberry Pi 3B header
+    pins: [1, 7, 9]
+    pinlabels: [3V3, GPIO4 (1-Wire), GND]
+  TB1:
+    type: Screw terminal block
+    subtype: shared junction
+    pinlabels: [3V3, DATA, GND]
+    notes: R1 4.7 kΩ, 3V3 to DATA
+  U1: &probe
+    type: DS18B20 waterproof probe
+    pinlabels: [VDD, DQ, GND]
+    notes: cold_flow
+  U2:
+    <<: *probe
+    notes: cold_return
+  U3:
+    <<: *probe
+    notes: hot_flow
+  U4:
+    <<: *probe
+    notes: hot_return
+
+cables:
+  W1:
+    wirecount: 3
+    notes: Pi header to TB1
+  L1: &lead
+    wirecount: 3
+    colors: [RD, YE, BK]
+    notes: probe lead
+  L2: *lead
+  L3: *lead
+  L4: *lead
+
+connections:
+  - - J1: [1, 7, 9]
+    - W1: [1, 2, 3]
+    - TB1: [1, 2, 3]
+  - - U1: [1, 2, 3]
+    - L1: [1, 2, 3]
+    - TB1: [1, 2, 3]
+  - - U2: [1, 2, 3]
+    - L2: [1, 2, 3]
+    - TB1: [1, 2, 3]
+  - - U3: [1, 2, 3]
+    - L3: [1, 2, 3]
+    - TB1: [1, 2, 3]
+  - - U4: [1, 2, 3]
+    - L4: [1, 2, 3]
+    - TB1: [1, 2, 3]

@@ -25,6 +25,8 @@ jobs:
         run: ruff format --check .
       - name: mypy
         run: mypy
+      - name: wiring diagrams up to date
+        run: python docs/wiring/build.py --check
 
   test:
     runs-on: ubuntu-latest

@@ -51,6 +51,9 @@ the Peltier first switches on.
 
 ## Wiring reference
 
+Full schematics, the power wire list and the sensor harness are in
+[docs/wiring](docs/wiring/README.md).
+
 **Relays:** a Waveshare RPi Relay Board (3 channel) on the GPIO header, with
 its jumpers fitted. **The board is active-low**: a LOW pin energises the relay.
 

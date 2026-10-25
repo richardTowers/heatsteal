@@ -28,6 +28,11 @@ dev = [
     "heatsteal[test]",
     "ruff",
     "mypy",
+    "schemdraw",  # for the wiring-diagram staleness check
+]
+docs = [
+    "schemdraw",
+    "wireviz",  # also needs Graphviz (`dot`)
 ]
 
 [project.scripts]
