@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heatsteal"
+version = "0.1.0"
+description = "Controller for a two-person Peltier heat-theft rig"
+readme = "README.md"
+requires-python = ">=3.11"
+# Kept deliberately short: this runs on a Raspberry Pi 3.
+dependencies = [
+    "fastapi",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+# Only install on the Pi. Nothing outside relays.py imports these.
+pi = [
+    "gpiozero",
+    "lgpio",
+]
+test = [
+    "pytest",
+    "httpx2",  # needed by fastapi.testclient
+]
+dev = [
+    "heatsteal[test]",
+    "ruff",
+    "mypy",
+    "schemdraw",  # for the wiring-diagram staleness check
+]
+docs = [
+    "schemdraw",
+    "wireviz",  # also needs Graphviz (`dot`)
+]
+
+[project.scripts]
+heatsteal = "heatsteal.cli:main"
+heatsteal-service = "heatsteal.service:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+heatsteal = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+packages = ["heatsteal"]
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# Pi-only; imported lazily in relays.py and not installed in CI.
+module = ["gpiozero", "gpiozero.*"]
+ignore_missing_imports = true

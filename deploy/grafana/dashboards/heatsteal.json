@@ -1,0 +1,310 @@
+{
+  "uid": "heatsteal",
+  "title": "heatsteal",
+  "tags": [
+    "heatsteal"
+  ],
+  "timezone": "browser",
+  "editable": false,
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "name": "State changes & faults",
+        "datasource": {
+          "type": "frser-sqlite-datasource",
+          "uid": "heatsteal-sqlite"
+        },
+        "enable": true,
+        "iconColor": "red",
+        "target": {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "heatsteal-sqlite"
+          },
+          "refId": "Anno",
+          "queryType": "table",
+          "rawQueryText": "SELECT ts AS time, kind || ': ' || detail AS text, kind AS tags\nFROM events\nWHERE kind IN ('state', 'fault')\n  AND ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nORDER BY ts ASC",
+          "queryText": "SELECT ts AS time, kind || ': ' || detail AS text, kind AS tags\nFROM events\nWHERE kind IN ('state', 'fault')\n  AND ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nORDER BY ts ASC",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Temperatures",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "heatsteal-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "heatsteal-sqlite"
+          },
+          "refId": "A",
+          "queryType": "time series",
+          "rawQueryText": "SELECT $__unixEpochGroupSeconds(ts, 5) AS time, sensor, avg(celsius) AS celsius\nFROM readings\nWHERE ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nGROUP BY 1, sensor\nORDER BY 1 ASC",
+          "queryText": "SELECT $__unixEpochGroupSeconds(ts, 5) AS time, sensor, avg(celsius) AS celsius\nFROM readings\nWHERE ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nGROUP BY 1, sensor\nORDER BY 1 ASC",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "displayName": "${__field.labels.sensor}",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cold_flow"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cold_return"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hot_flow"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hot_return"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "light-red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Power per loop",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "heatsteal-sqlite"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "heatsteal-sqlite"
+          },
+          "refId": "A",
+          "queryType": "time series",
+          "rawQueryText": "SELECT $__unixEpochGroupSeconds(ts, 5) AS time, loop, avg(watts) AS watts\nFROM power\nWHERE ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nGROUP BY 1, loop\nORDER BY 1 ASC",
+          "queryText": "SELECT $__unixEpochGroupSeconds(ts, 5) AS time, loop, avg(watts) AS watts\nFROM power\nWHERE ts >= $__from / 1000.0 AND ts < $__to / 1000.0\nGROUP BY 1, loop\nORDER BY 1 ASC",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "displayName": "${__field.labels.loop}",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "spanNulls": false,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cold"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hot"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "kJ stolen this session",
+      "datasource": {
+        "type": "frser-sqlite-datasource",
+        "uid": "heatsteal-sqlite"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "frser-sqlite-datasource",
+            "uid": "heatsteal-sqlite"
+          },
+          "refId": "A",
+          "queryType": "table",
+          "rawQueryText": "-- joules is cumulative within a session; the latest cold row is \"stolen so far\"\nSELECT ts AS time, joules / 1000.0 AS kj\nFROM power\nWHERE loop = 'cold'\nORDER BY ts DESC\nLIMIT 1",
+          "queryText": "-- joules is cumulative within a session; the latest cold row is \"stolen so far\"\nSELECT ts AS time, joules / 1000.0 AS kj\nFROM power\nWHERE loop = 'cold'\nORDER BY ts DESC\nLIMIT 1",
+          "timeColumns": [
+            "time"
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^kj$/",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# /etc/systemd/system/heatsteal.service
+[Unit]
+Description=heatsteal Peltier rig controller
+Documentation=file:///opt/heatsteal/README.md
+After=network.target
+
+[Service]
+Type=notify
+NotifyAccess=main
+# The control loop sends WATCHDOG=1 every tick. If it hangs, systemd kills
+# the process and the relays drop (acceptance test 3).
+WatchdogSec=10
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+
+User=heatsteal
+Group=heatsteal
+SupplementaryGroups=gpio
+# Group-writable files, so Grafana (in group heatsteal) can create the WAL -shm.
+UMask=0002
+
+# /run/heatsteal on tmpfs: created at start, kept across restarts until reboot.
+RuntimeDirectory=heatsteal
+RuntimeDirectoryMode=0775
+RuntimeDirectoryPreserve=yes
+WorkingDirectory=/run/heatsteal
+# lgpio creates its notification pipes in LG_WD (default: the cwd).
+Environment=LG_WD=/run/heatsteal
+
+# therm_bulk_read is root-owned; let the heatsteal group trigger bulk
+# conversions. "+" runs as root, "-" ignores failure (the service then falls
+# back to per-probe w1_slave reads and logs it).
+ExecStartPre=+-/bin/sh -c 'f=/sys/bus/w1/devices/w1_bus_master1/therm_bulk_read; chgrp heatsteal "$f" && chmod g+w "$f"'
+ExecStart=/opt/heatsteal/bin/heatsteal-service --config /etc/heatsteal/config.toml
+
+NoNewPrivileges=yes
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

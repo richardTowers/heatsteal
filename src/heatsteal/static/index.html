@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>heatsteal</title>
+<style>
+  :root {
+    --bg: #111418; --panel: #1b2027; --text: #e8ecf1; --muted: #8a94a3; --line: #2a313b;
+    --idle: #6b7280; --priming: #2563eb; --running: #16a34a; --cooldown: #0891b2; --fault: #dc2626;
+    --warn: #d97706; --on: #22c55e; --off: #374151; --cold: #60a5fa; --hot: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .02em; }
+  .badge { padding: 6px 14px; border-radius: 999px; font-weight: 700; letter-spacing: .05em; background: var(--idle); }
+  .badge.PRIMING { background: var(--priming); } .badge.RUNNING { background: var(--running); }
+  .badge.COOLDOWN { background: var(--cooldown); } .badge.FAULT { background: var(--fault); }
+  .badge.OFFLINE { background: #000; border: 1px solid var(--fault); }
+  .hero { text-align: center; padding: 24px 0 8px; }
+  .watts { font-size: clamp(72px, 18vw, 180px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--cold); }
+  .watts small { font-size: .3em; color: var(--muted); font-weight: 600; }
+  .kj { font-size: clamp(22px, 4vw, 34px); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kj b { color: var(--text); }
+  .alert { margin: 16px 0; padding: 14px 16px; border-radius: 10px; font-size: 20px; font-weight: 600; display: none; }
+  .alert.fault { display: block; background: #450a0a; border: 2px solid var(--fault); }
+  .alert.warn { display: block; background: #451a03; border: 2px solid var(--warn); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+  .temps { display: grid; grid-template-columns: 1fr auto; row-gap: 4px; font-variant-numeric: tabular-nums; }
+  .temps .v { font-weight: 700; text-align: right; }
+  .stale { color: var(--muted); opacity: .45; text-decoration: line-through; }
+  .relays { display: flex; flex-direction: column; gap: 6px; }
+  .relay { display: flex; align-items: center; gap: 10px; }
+  .led { width: 14px; height: 14px; border-radius: 50%; background: var(--off); box-shadow: inset 0 0 0 1px #0006; }
+  .led.on { background: var(--on); box-shadow: 0 0 10px var(--on); }
+  .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { font: inherit; font-weight: 700; padding: 12px 22px; border-radius: 8px; border: 0; cursor: pointer; color: #fff; }
+  button:disabled { opacity: .3; cursor: not-allowed; }
+  #start { background: var(--running); } #stop { background: var(--cooldown); } #reset { background: var(--fault); }
+  .muted { color: var(--muted); font-size: 14px; }
+  .graphs { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 16px; }
+  .graphs iframe { width: 100%; height: 260px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+  #msg { min-height: 1.4em; }
+  .cold { color: var(--cold); } .hot { color: var(--hot); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>heatsteal</h1>
+    <span id="badge" class="badge">…</span>
+  </header>
+
+  <section class="hero">
+    <div class="watts"><span id="watts">–</span><small> W stolen</small></div>
+    <div class="kj"><b id="kj">–</b> kJ stolen this session</div>
+  </section>
+
+  <div id="alert" class="alert"></div>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Temperatures</h2>
+      <div class="temps" id="temps"></div>
+    </div>
+    <div class="card">
+      <h2>Relays</h2>
+      <div class="relays">
+        <div class="relay"><span class="led" id="led-peltier"></span>Peltier</div>
+        <div class="relay"><span class="led" id="led-cold_pump"></span>Cold pump</div>
+        <div class="relay"><span class="led" id="led-hot_pump"></span>Hot pump</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Power</h2>
+      <div class="temps">
+        <span class="cold">Stolen (cold)</span><span class="v" id="p_cold">–</span>
+        <span class="hot">Delivered (hot)</span><span class="v" id="p_hot">–</span>
+        <span class="hot">Delivered this session</span><span class="v" id="kj_hot">–</span>
+        <span>Time in state</span><span class="v" id="tis">–</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Control</h2>
+      <div class="buttons">
+        <button id="start" disabled>Start</button>
+        <button id="stop" disabled>Stop</button>
+        <button id="reset" disabled>Reset</button>
+      </div>
+      <p id="msg" class="muted"></p>
+      <p class="muted" id="authrow" hidden><a href="#" id="settoken" style="color:inherit">Set control token</a></p>
+    </div>
+  </section>
+
+  <section class="graphs" id="graphs"></section>
+  <p class="muted">History comes from Grafana. If it is down, the panels above still work.</p>
+</main>
+
+<script>
+"use strict";
+const LABELS = {cold_flow: "Cold flow", cold_return: "Cold return", hot_flow: "Hot flow", hot_return: "Hot return"};
+const $ = (id) => document.getElementById(id);
+const fmt = (v, d = 1) => (v === null || v === undefined) ? "–" : v.toFixed(d);
+let authRequired = false;
+
+function token() { try { return localStorage.getItem("heatsteal-token") || ""; } catch { return ""; } }
+
+function render(s) {
+  const badge = $("badge");
+  badge.textContent = s.state;
+  badge.className = "badge " + s.state;
+
+  $("watts").textContent = s.p_cold_w === null ? "–" : Math.round(s.p_cold_w).toString();
+  $("kj").textContent = fmt(s.kj_cold, 2);
+  $("p_cold").textContent = fmt(s.p_cold_w) + " W";
+  $("p_hot").textContent = fmt(s.p_hot_w) + " W";
+  $("kj_hot").textContent = fmt(s.kj_hot, 2) + " kJ";
+  $("tis").textContent = Math.round(s.time_in_state_s) + " s";
+
+  const temps = $("temps");
+  temps.replaceChildren();
+  for (const [name, p] of Object.entries(s.probes)) {
+    const k = document.createElement("span");
+    k.textContent = LABELS[name] || name;
+    const v = document.createElement("span");
+    v.className = "v";
+    v.textContent = p.celsius === null ? "–" : p.celsius.toFixed(2) + " °C";
+    if (p.stale || p.celsius === null) { k.classList.add("stale"); v.classList.add("stale"); v.title = p.error || "stale"; }
+    temps.append(k, v);
+  }
+
+  for (const [name, on] of Object.entries(s.relays)) {
+    $("led-" + name).classList.toggle("on", on);
+  }
+
+  const valid = new Set(s.valid_commands);
+  $("start").disabled = !valid.has("start");
+  $("stop").disabled = !valid.has("stop");
+  $("reset").disabled = !valid.has("reset");
+
+  const alert = $("alert");
+  if (s.state === "FAULT") {
+    alert.className = "alert fault";
+    alert.textContent = "FAULT: " + (s.last_fault || "unknown") + " — pumps kept running. Fix the cause, then Reset.";
+  } else if (s.warnings.length) {
+    alert.className = "alert warn";
+    alert.textContent = "Warning: " + s.warnings.join("; ");
+  } else {
+    alert.className = "alert";
+    alert.textContent = "";
+  }
+  if (s.pump_job) $("msg").textContent = `Pump job: ${s.pump_job.loop} loop, ${Math.round(s.pump_job.remaining_s)} s left`;
+  else if ($("msg").textContent.startsWith("Pump job")) $("msg").textContent = "";
+}
+
+function offline() {
+  const badge = $("badge");
+  badge.textContent = "OFFLINE";
+  badge.className = "badge OFFLINE";
+  for (const id of ["start", "stop", "reset"]) $(id).disabled = true;
+}
+
+async function poll() {
+  try {
+    const r = await fetch("/api/state", {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+  } catch (e) {
+    offline();
+  } finally {
+    setTimeout(poll, 1000);
+  }
+}
+
+async function send(action) {
+  const headers = {"Content-Type": "application/json"};
+  if (token()) headers["Authorization"] = "Bearer " + token();
+  $("msg").textContent = action + "…";
+  try {
+    const r = await fetch("/api/command", {method: "POST", headers, body: JSON.stringify({action})});
+    const body = await r.json().catch(() => ({}));
+    if (r.status === 401) $("msg").textContent = "Not authorised: set the control token.";
+    else if (!r.ok) $("msg").textContent = "Rejected: " + (body.reason || body.detail || r.status);
+    else $("msg").textContent = action + " → " + body.state;
+  } catch (e) {
+    $("msg").textContent = "Could not reach the controller.";
+  }
+}
+
+for (const id of ["start", "stop", "reset"]) $(id).addEventListener("click", () => send(id));
+$("settoken").addEventListener("click", (e) => {
+  e.preventDefault();
+  const t = prompt("Control token", token());
+  if (t !== null) { try { localStorage.setItem("heatsteal-token", t); } catch {} }
+});
+
+async function setup() {
+  try {
+    const r = await fetch("/api/ui");
+    const ui = await r.json();
+    authRequired = ui.auth_required;
+    $("authrow").hidden = !authRequired;
+    if (ui.grafana_url) {
+      const panels = [1, 2, 3];
+      const graphs = $("graphs");
+      for (const id of panels) {
+        const f = document.createElement("iframe");
+        f.loading = "lazy";
+        f.src = `${ui.grafana_url}/d-solo/heatsteal/heatsteal?orgId=1&panelId=${id}&from=now-30m&to=now&refresh=10s&theme=dark`;
+        graphs.append(f);
+      }
+    }
+  } catch (e) { /* Grafana or config missing: live panel still works */ }
+}
+
+setup();
+poll();
+</script>
+</body>
+</html>
