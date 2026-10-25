@@ -22,7 +22,7 @@ pi = [
 ]
 test = [
     "pytest",
-    "httpx",  # needed by fastapi.testclient
+    "httpx2",  # needed by fastapi.testclient
 ]
 
 [project.scripts]
