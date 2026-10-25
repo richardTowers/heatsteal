@@ -1,4 +1,4 @@
-# heatsteal
+# heatsteal 🥶🔄🥵
 
 Controller software for a two-person Peltier "heat theft" rig. One person wears a
 cold headband and the other wears a warm vest. A Peltier module moves heat
