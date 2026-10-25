@@ -1,0 +1,15 @@
+# /etc/grafana/provisioning/datasources/heatsteal.yaml
+apiVersion: 1
+datasources:
+  - name: heatsteal
+    uid: heatsteal-sqlite
+    type: frser-sqlite-datasource
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      # On tmpfs. The plugin adds _pragma=query_only(1) by default. The DB is
+      # in WAL mode, so the grafana user also needs write access to the
+      # directory (for the -shm file): it is in group heatsteal, and the
+      # directory is 0775.
+      path: /run/heatsteal/heatsteal.db

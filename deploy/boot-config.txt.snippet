@@ -1,0 +1,9 @@
+# Append to /boot/firmware/config.txt, then reboot.
+#
+# 1-Wire bus for the DS18B20 probes (default pin: BCM 4, physical pin 7).
+dtoverlay=w1-gpio
+# The relay board is active-low and BCM 20/21/26 default to pull-down at
+# power-on, which could energise the relays before the service starts.
+# Make the firmware drive them as outputs, HIGH (= relays off), from the
+# earliest moment.
+gpio=20,21,26=op,dh

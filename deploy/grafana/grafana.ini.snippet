@@ -1,0 +1,14 @@
+# Merge into /etc/grafana/grafana.ini.
+
+[security]
+# Let the heatsteal page embed panels in iframes.
+allow_embedding = true
+
+[auth.anonymous]
+# Panels render without a login (read-only).
+enabled = true
+org_name = Main Org.
+org_role = Viewer
+
+[paths]
+provisioning = /etc/grafana/provisioning
