@@ -6,7 +6,7 @@ import enum
 from dataclasses import dataclass
 
 
-class State(str, enum.Enum):
+class State(enum.StrEnum):
     IDLE = "IDLE"
     PRIMING = "PRIMING"
     RUNNING = "RUNNING"

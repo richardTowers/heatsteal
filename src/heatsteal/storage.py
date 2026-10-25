@@ -16,7 +16,7 @@ import os
 import sqlite3
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .model import Event, RelayOutputs, Snapshot, State
@@ -27,7 +27,8 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY, started REAL NOT NULL, ended REAL);
 CREATE TABLE IF NOT EXISTS readings (ts REAL NOT NULL, sensor TEXT NOT NULL, celsius REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS power    (ts REAL NOT NULL, loop TEXT NOT NULL, watts REAL NOT NULL, joules REAL NOT NULL);
-CREATE TABLE IF NOT EXISTS relays   (ts REAL NOT NULL, peltier INTEGER, cold_pump INTEGER, hot_pump INTEGER, state TEXT);
+CREATE TABLE IF NOT EXISTS relays   (ts REAL NOT NULL, peltier INTEGER, cold_pump INTEGER, hot_pump INTEGER,
+                                      state TEXT);
 CREATE TABLE IF NOT EXISTS events   (ts REAL NOT NULL, kind TEXT NOT NULL, detail TEXT);
 CREATE INDEX IF NOT EXISTS ix_readings_ts ON readings(ts);
 CREATE INDEX IF NOT EXISTS ix_power_ts ON power(ts);
@@ -97,8 +98,10 @@ class Storage:
     def start_session(self, ts: float) -> int:
         cur = self.conn.execute("INSERT INTO sessions (started) VALUES (?)", (ts,))
         self.conn.commit()
-        self.session_id = cur.lastrowid
-        return self.session_id
+        sid = cur.lastrowid
+        assert sid is not None
+        self.session_id = sid
+        return sid
 
     def end_session(self, ts: float) -> None:
         if self.session_id is None:
@@ -152,7 +155,7 @@ class Storage:
         if not d.is_dir() or not os.access(d, os.W_OK):
             log.warning("archive_dir %s is missing or not writable; skipping archive", d)
             return None
-        date = datetime.fromtimestamp(ts, timezone.utc).strftime("%Y%m%d-%H%M%S")
+        date = datetime.fromtimestamp(ts, UTC).strftime("%Y%m%d-%H%M%S")
         return d / f"session-{session_id}-{date}.db"
 
     def archive(self, session_id: int, ts: float, background: bool = True) -> Path | None:
@@ -200,9 +203,7 @@ def recent_events(db_path: str, limit: int = 50) -> list[dict]:
     """Read-only query for the API, on a fresh connection."""
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     try:
-        rows = conn.execute(
-            "SELECT ts, kind, detail FROM events ORDER BY ts DESC LIMIT ?", (limit,)
-        ).fetchall()
+        rows = conn.execute("SELECT ts, kind, detail FROM events ORDER BY ts DESC LIMIT ?", (limit,)).fetchall()
     finally:
         conn.close()
     return [{"ts": ts, "kind": kind, "detail": detail} for ts, kind, detail in rows]

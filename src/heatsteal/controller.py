@@ -175,8 +175,10 @@ def _cutout_check(cfg: Config, ctx: Ctx, snap: Snapshot, now: float) -> tuple[Ct
     ctx = replace(ctx, low_dt_since=since)
     if now - since < lim.min_loop_dt_hold_s:
         return ctx, []
-    msg = (f"Peltier on but no heat moving in {' and '.join(low)} loop for {now - since:.0f} s; "
-           "45 °C cutout may have tripped, check hot-side flow")
+    msg = (
+        f"Peltier on but no heat moving in {' and '.join(low)} loop for {now - since:.0f} s; "
+        "45 °C cutout may have tripped, check hot-side flow"
+    )
     return ctx, [("cutout", "warn", msg)]
 
 
@@ -189,23 +191,32 @@ def _dead_pump_checks(cfg: Config, ctx: Ctx, snap: Snapshot) -> list[tuple[str, 
     rise = _slope_k_per_min(hot_pts)
     if rise is not None and rise > lim.hot_rise_max_k_per_min:
         tripped.append(
-            ("hot_rise", lim.action("hot_rise"),
-             f"hot_flow rising {rise:.1f} K/min (limit {lim.hot_rise_max_k_per_min:g}); hot pump dead?")
+            (
+                "hot_rise",
+                lim.action("hot_rise"),
+                f"hot_flow rising {rise:.1f} K/min (limit {lim.hot_rise_max_k_per_min:g}); hot pump dead?",
+            )
         )
 
     cold_pts = [(t, c) for t, _, c in ctx.history if c is not None]
     fall = _slope_k_per_min(cold_pts)
     if fall is not None and -fall > lim.cold_fall_max_k_per_min:
         tripped.append(
-            ("cold_fall", lim.action("cold_fall"),
-             f"cold_flow falling {-fall:.1f} K/min (limit {lim.cold_fall_max_k_per_min:g}); cold pump dead?")
+            (
+                "cold_fall",
+                lim.action("cold_fall"),
+                f"cold_flow falling {-fall:.1f} K/min (limit {lim.cold_fall_max_k_per_min:g}); cold pump dead?",
+            )
         )
 
     for loop, dt in _loop_dts(snap).items():
         if abs(dt) > lim.loop_dt_max_k:
             tripped.append(
-                (f"loop_dt_{loop}", lim.action("loop_dt"),
-                 f"{loop} loop ΔT {dt:.1f} K (limit {lim.loop_dt_max_k:g}); {loop} pump dead?")
+                (
+                    f"loop_dt_{loop}",
+                    lim.action("loop_dt"),
+                    f"{loop} loop ΔT {dt:.1f} K (limit {lim.loop_dt_max_k:g}); {loop} pump dead?",
+                )
             )
     return tripped
 
@@ -248,7 +259,7 @@ def _evaluate(cfg: Config, ctx: Ctx, snap: Snapshot | None, now: float, events: 
         if now - ctx.running_since >= t.warmup_s:
             ctx, cutout = _cutout_check(cfg, ctx, snap, now)
             tripped = _dead_pump_checks(cfg, ctx, snap) + cutout
-            for hid, action, msg in tripped:
+            for _, action, msg in tripped:
                 if action == "fault":
                     return _fault(ctx, now, msg, events)
             active = {hid: msg for hid, action, msg in tripped}

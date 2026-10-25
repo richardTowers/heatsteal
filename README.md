@@ -30,8 +30,9 @@ for the rig.
 
 ```sh
 python3 -m venv .venv
-.venv/bin/pip install -e '.[test]'
+.venv/bin/pip install -e '.[dev]'
 .venv/bin/pytest
+.venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/mypy   # what CI runs
 
 cp config.example.toml dev.toml
 # point storage.db_path somewhere writable, e.g. db_path = "dev.db"

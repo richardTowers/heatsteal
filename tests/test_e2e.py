@@ -24,8 +24,9 @@ class Harness:
         self.clock = Clock()
         self.pings = []
         self.cfg = make_config(storage={"db_path": str(tmp_path / "h.db")}, sim={"noise": False, **sim})
-        self.loop = service.build(self.cfg, mono=self.clock.mono, wall=self.clock.wall,
-                                  notify=self.pings.append, sim_seed=1)
+        self.loop = service.build(
+            self.cfg, mono=self.clock.mono, wall=self.clock.wall, notify=self.pings.append, sim_seed=1
+        )
         self.trace = []
 
     def tick(self, n=1):

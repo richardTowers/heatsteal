@@ -9,11 +9,14 @@ ALL_ON = RelayOutputs(True, True, True)
 PUMPS = RelayOutputs(False, True, True)
 
 
-@pytest.mark.parametrize("bad", [
-    RelayOutputs(True, False, False),
-    RelayOutputs(True, True, False),
-    RelayOutputs(True, False, True),
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        RelayOutputs(True, False, False),
+        RelayOutputs(True, True, False),
+        RelayOutputs(True, False, True),
+    ],
+)
 def test_peltier_requires_both_pumps(bad):
     r = FakeRelays()
     with pytest.raises(RelayInvariantError):

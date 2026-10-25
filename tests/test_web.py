@@ -14,8 +14,12 @@ def make_client(tmp_path):
     loops = []
 
     def make(**web):
-        cfg = make_config(storage={"db_path": str(tmp_path / "h.db")}, web=web, sim={"noise": False},
-                          timing={"sample_s": 0.05, "sensor_stale_s": 5})
+        cfg = make_config(
+            storage={"db_path": str(tmp_path / "h.db")},
+            web=web,
+            sim={"noise": False},
+            timing={"sample_s": 0.05, "sensor_stale_s": 5},
+        )
         loop = service.build(cfg, notify=lambda m: True)
         loop.start()
         loops.append(loop)
@@ -80,8 +84,7 @@ def test_auth(make_client):
     c = make_client(control_token="s3cret")
     assert c.get("/api/state").status_code == 200  # GET stays open
     assert c.post("/api/command", json={"action": "start"}).status_code == 401
-    assert c.post("/api/command", json={"action": "start"},
-                  headers={"Authorization": "Bearer nope"}).status_code == 401
+    assert c.post("/api/command", json={"action": "start"}, headers={"Authorization": "Bearer nope"}).status_code == 401
     r = c.post("/api/command", json={"action": "start"}, headers={"Authorization": "Bearer s3cret"})
     assert r.status_code == 200
     assert c.get("/api/ui").json()["auth_required"] is True

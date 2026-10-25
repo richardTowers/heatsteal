@@ -75,10 +75,13 @@ def make_tree(root, devices, bulk=True, bulk_status="1"):
 
 
 def test_sysfs_bulk(tmp_path):
-    make_tree(tmp_path, {
-        "28-000000000001": ("21500\n", fx("w1_slave_ok")),
-        "28-000000000002": ("85000\n", fx("w1_slave_ok")),
-    })
+    make_tree(
+        tmp_path,
+        {
+            "28-000000000001": ("21500\n", fx("w1_slave_ok")),
+            "28-000000000002": ("85000\n", fx("w1_slave_ok")),
+        },
+    )
     bus = SysfsBus(tmp_path)
     assert bus.addresses() == ["28-000000000001", "28-000000000002"]
     r = bus.read(["28-000000000001", "28-000000000002", "28-000000000009"])
@@ -123,10 +126,14 @@ def test_sysfs_bulk_timeout(tmp_path):
 
 
 def test_sysfs_fallback_to_w1_slave(tmp_path, caplog):
-    make_tree(tmp_path, {
-        "28-000000000001": (None, fx("w1_slave_ok")),
-        "28-000000000002": (None, fx("w1_slave_crc_fail")),
-    }, bulk=False)
+    make_tree(
+        tmp_path,
+        {
+            "28-000000000001": (None, fx("w1_slave_ok")),
+            "28-000000000002": (None, fx("w1_slave_crc_fail")),
+        },
+        bulk=False,
+    )
     bus = SysfsBus(tmp_path)
     with caplog.at_level("WARNING"):
         r1 = bus.read(["28-000000000001", "28-000000000002"])

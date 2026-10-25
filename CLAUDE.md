@@ -45,8 +45,9 @@ it before changing behaviour.
 ## Commands
 
 ```sh
-python3 -m venv .venv && .venv/bin/pip install -e '.[test]'
+python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'
 .venv/bin/pytest                                   # no hardware needed
+.venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/mypy   # same as CI
 .venv/bin/heatsteal-service --config dev.toml      # hardware = "fake" runs the simulator
 ```
 

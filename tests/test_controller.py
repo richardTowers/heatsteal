@@ -75,13 +75,16 @@ def test_starts_idle_all_off():
     assert rig.outputs == OFF
 
 
-@pytest.mark.parametrize("state, expected", [
-    (State.IDLE, OFF),
-    (State.PRIMING, PUMPS),
-    (State.RUNNING, ALL_ON),
-    (State.COOLDOWN, PUMPS),
-    (State.FAULT, PUMPS),
-])
+@pytest.mark.parametrize(
+    "state, expected",
+    [
+        (State.IDLE, OFF),
+        (State.PRIMING, PUMPS),
+        (State.RUNNING, ALL_ON),
+        (State.COOLDOWN, PUMPS),
+        (State.FAULT, PUMPS),
+    ],
+)
 def test_outputs_for_each_state(state, expected):
     assert controller.outputs_for(controller.Ctx(state=state)) == expected
 
@@ -154,23 +157,26 @@ def test_session_start_recorded():
 # -- rejected commands ---------------------------------------------------------
 
 
-@pytest.mark.parametrize("state, command", [
-    (State.PRIMING, START),
-    (State.RUNNING, START),
-    (State.COOLDOWN, START),
-    (State.FAULT, START),
-    (State.IDLE, STOP),
-    (State.COOLDOWN, STOP),
-    (State.FAULT, STOP),
-    (State.IDLE, RESET),
-    (State.PRIMING, RESET),
-    (State.RUNNING, RESET),
-    (State.COOLDOWN, RESET),
-    (State.PRIMING, Command("pump", "cold", 30)),
-    (State.RUNNING, Command("pump", "cold", 30)),
-    (State.COOLDOWN, Command("pump", "cold", 30)),
-    (State.FAULT, Command("pump", "cold", 30)),
-])
+@pytest.mark.parametrize(
+    "state, command",
+    [
+        (State.PRIMING, START),
+        (State.RUNNING, START),
+        (State.COOLDOWN, START),
+        (State.FAULT, START),
+        (State.IDLE, STOP),
+        (State.COOLDOWN, STOP),
+        (State.FAULT, STOP),
+        (State.IDLE, RESET),
+        (State.PRIMING, RESET),
+        (State.RUNNING, RESET),
+        (State.COOLDOWN, RESET),
+        (State.PRIMING, Command("pump", "cold", 30)),
+        (State.RUNNING, Command("pump", "cold", 30)),
+        (State.COOLDOWN, Command("pump", "cold", 30)),
+        (State.FAULT, Command("pump", "cold", 30)),
+    ],
+)
 def test_invalid_commands_rejected_with_reason(state, command):
     rig = Rig()
     if state is State.PRIMING:
@@ -261,13 +267,16 @@ def test_pump_job_can_be_stopped():
     assert rig.outputs == OFF
 
 
-@pytest.mark.parametrize("command", [
-    Command("pump", "warm", 10),
-    Command("pump", "cold", 0),
-    Command("pump", "cold", -5),
-    Command("pump", "cold", 10_000),
-    Command("pump", "cold", None),
-])
+@pytest.mark.parametrize(
+    "command",
+    [
+        Command("pump", "warm", 10),
+        Command("pump", "cold", 0),
+        Command("pump", "cold", -5),
+        Command("pump", "cold", 10_000),
+        Command("pump", "cold", None),
+    ],
+)
 def test_bad_pump_commands(command):
     rig = Rig()
     r = rig.cmd(command)
@@ -395,6 +404,7 @@ def test_max_run_minutes_ends_in_cooldown():
 def ramp(probe, k_per_min):
     def each(rig):
         rig.temps[probe] += k_per_min / 60.0
+
     return each
 
 

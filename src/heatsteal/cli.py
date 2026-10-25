@@ -52,8 +52,9 @@ def api(base: str, path: str, body: dict | None = None, token: str = "", timeout
         headers["Content-Type"] = "application/json"
         if token:
             headers["Authorization"] = f"Bearer {token}"
-    req = urllib.request.Request(base.rstrip("/") + path, data=data, headers=headers,
-                                 method="POST" if body is not None else "GET")
+    req = urllib.request.Request(
+        base.rstrip("/") + path, data=data, headers=headers, method="POST" if body is not None else "GET"
+    )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.load(r)
@@ -88,7 +89,9 @@ def format_status(s: dict) -> str:
     r = s["relays"]
     onoff = lambda b: "ON " if b else "off"  # noqa: E731
     lines.append("")
-    lines.append(f"Relays     peltier {onoff(r['peltier'])}  cold_pump {onoff(r['cold_pump'])}  hot_pump {onoff(r['hot_pump'])}")
+    lines.append(
+        f"Relays     peltier {onoff(r['peltier'])}  cold_pump {onoff(r['cold_pump'])}  hot_pump {onoff(r['hot_pump'])}"
+    )
     if s.get("pump_job"):
         lines.append(f"Pump job   {s['pump_job']['loop']} loop, {s['pump_job']['remaining_s']:.0f} s left")
     if s["state"] == "FAULT":
@@ -170,8 +173,9 @@ def _open_bus(cfg):
 def _refuse_if_running(args) -> bool:
     why = service_running(args.url)
     if why:
-        print(f"refusing: the service is running ({why}). Stop it first: sudo systemctl stop heatsteal",
-              file=sys.stderr)
+        print(
+            f"refusing: the service is running ({why}). Stop it first: sudo systemctl stop heatsteal", file=sys.stderr
+        )
         return True
     return False
 
@@ -182,10 +186,9 @@ def _load_cfg_for_bus(args):
     except config_mod.ConfigError as e:
         if args.hardware:
             # No usable config yet (e.g. first time labelling probes): a minimal one will do.
-            raw = {"hardware": args.hardware,
-                   "sensors": {p: f"28-00000000000{i + 1}" for i, p in enumerate(PROBES)}}
+            raw = {"hardware": args.hardware, "sensors": {p: f"28-00000000000{i + 1}" for i, p in enumerate(PROBES)}}
             return config_mod.from_dict(raw)
-        raise SystemExit(f"{e}\n(pass --hardware pi to scan the bus without a config)")
+        raise SystemExit(f"{e}\n(pass --hardware pi to scan the bus without a config)") from None
     if args.hardware:
         cfg = dataclasses.replace(cfg, hardware=args.hardware)
     return cfg
@@ -212,7 +215,7 @@ def cmd_sensors(args) -> int:
                 h.append((now, r.celsius))
             if len(h) >= 2 and h[-1][0] - h[0][0] > 0:
                 rates[a] = (h[-1][1] - h[0][1]) / (h[-1][0] - h[0][0]) * 60
-        warmest = max(rates, key=rates.get) if rates else None
+        warmest = max(rates, key=lambda a: rates[a]) if rates else None
         if warmest is not None and rates[warmest] <= 0.2:
             warmest = None  # nothing is obviously warming
         out = [f"{'address':<17} {'name':<12} {'°C':>8}  {'K/min':>6}"]
@@ -235,8 +238,9 @@ def cmd_sensors(args) -> int:
         while True:
             t0 = time.monotonic()
             lines = once()
-            sys.stdout.write("\x1b[H\x1b[2J" + "Hold a probe in your hand to find it. Ctrl-C to stop.\n\n"
-                             + "\n".join(lines) + "\n")
+            sys.stdout.write(
+                "\x1b[H\x1b[2J" + "Hold a probe in your hand to find it. Ctrl-C to stop.\n\n" + "\n".join(lines) + "\n"
+            )
             sys.stdout.flush()
             time.sleep(max(0.0, 1.0 - (time.monotonic() - t0)))
     except KeyboardInterrupt:
@@ -251,7 +255,7 @@ def compute_offsets(samples: list[dict[str, float]]) -> dict[str, float]:
     complete = [s for s in samples if all(s.get(p) is not None for p in PROBES)]
     if not complete:
         raise ValueError("no sample had all four probes")
-    diffs = {p: [] for p in PROBES}
+    diffs: dict[str, list[float]] = {p: [] for p in PROBES}
     for s in complete:
         mean = sum(s[p] for p in PROBES) / len(PROBES)
         for p in PROBES:
@@ -274,7 +278,9 @@ def cmd_calibrate(args) -> int:
     addrs = [cfg.sensors[p] for p in PROBES]
     end = time.monotonic() + args.minutes * 60
     samples: list[dict[str, float]] = []
-    print(f"Recording for {args.minutes:g} min. All four probes must be in the same container of water,", file=sys.stderr)
+    print(
+        f"Recording for {args.minutes:g} min. All four probes must be in the same container of water,", file=sys.stderr
+    )
     print("stirred, away from anything warm. Ctrl-C to stop early.", file=sys.stderr)
     try:
         while time.monotonic() < end:
@@ -306,8 +312,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="heatsteal", description="Control and inspect the heatsteal rig")
     ap.add_argument("--config", default=os.environ.get("HEATSTEAL_CONFIG", str(config_mod.DEFAULT_PATH)))
     ap.add_argument("--url", help="service URL (default: $HEATSTEAL_URL or http://127.0.0.1:<port from config>)")
-    ap.add_argument("--token", default=os.environ.get("HEATSTEAL_TOKEN", ""),
-                    help="control token for commands (default: $HEATSTEAL_TOKEN)")
+    ap.add_argument(
+        "--token",
+        default=os.environ.get("HEATSTEAL_TOKEN", ""),
+        help="control token for commands (default: $HEATSTEAL_TOKEN)",
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("status", help="one-shot status").set_defaults(func=cmd_status)

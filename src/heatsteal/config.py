@@ -245,12 +245,17 @@ def validate(cfg: Config) -> None:
         raise ConfigError("[limits] cold_min_c must be below hot_max_c")
     if lim.hot_max_c > 44.0:
         raise ConfigError("[limits] hot_max_c above 44 °C risks skin injury")
-    for name in ("hot_rise_max_k_per_min", "cold_fall_max_k_per_min", "loop_dt_max_k",
-                 "min_loop_dt_k", "min_loop_dt_hold_s"):
+    for name in (
+        "hot_rise_max_k_per_min",
+        "cold_fall_max_k_per_min",
+        "loop_dt_max_k",
+        "min_loop_dt_k",
+        "min_loop_dt_hold_s",
+    ):
         if getattr(lim, name) <= 0:
             raise ConfigError(f"[limits] {name} must be positive")
     if lim.dead_pump_action not in ACTIONS:
-        raise ConfigError(f'[limits] dead_pump_action must be "warn" or "fault"')
+        raise ConfigError('[limits] dead_pump_action must be "warn" or "fault"')
     for h in ("hot_rise", "cold_fall", "loop_dt"):
         v = getattr(lim, f"{h}_action")
         if v and v not in ACTIONS:

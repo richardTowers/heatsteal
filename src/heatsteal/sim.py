@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import random
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from .config import Sim as SimConfig
 from .model import RelayOutputs
@@ -118,9 +118,11 @@ class ThermalSim:
         else:
             exch = 0.0
             self.block_cold += dt * (-q_c + G_BLOCK_AMBIENT_W_K * (amb - self.block_cold)) / BLOCK_HEAT_CAP_J_K
-        self.loop_cold += dt * (
-            G_HEADBAND_W_K * (SKIN_C - self.loop_cold) + G_LOOP_AMBIENT_W_K * (amb - self.loop_cold) - exch
-        ) / heat_cap
+        self.loop_cold += (
+            dt
+            * (G_HEADBAND_W_K * (SKIN_C - self.loop_cold) + G_LOOP_AMBIENT_W_K * (amb - self.loop_cold) - exch)
+            / heat_cap
+        )
 
         # Hot side
         if hot_flowing:
@@ -129,9 +131,9 @@ class ThermalSim:
         else:
             exch = 0.0
             self.block_hot += dt * (q_h + G_BLOCK_AMBIENT_W_K * (amb - self.block_hot)) / BLOCK_HEAT_CAP_J_K
-        self.loop_hot += dt * (
-            g_vest * (SKIN_C - self.loop_hot) + G_LOOP_AMBIENT_W_K * (amb - self.loop_hot) + exch
-        ) / heat_cap
+        self.loop_hot += (
+            dt * (g_vest * (SKIN_C - self.loop_hot) + G_LOOP_AMBIENT_W_K * (amb - self.loop_hot) + exch) / heat_cap
+        )
 
         # Bimetallic cutout in series with the Peltier
         if self.block_hot >= CUTOUT_OPEN_C:

@@ -59,7 +59,10 @@ def test_relays_written_only_on_change(tmp_path):
     s.add_relays(5.0, RelayOutputs(False, True, True), State.FAULT)  # state changed
     s.flush()
     assert rows(db, "SELECT ts, peltier, cold_pump, hot_pump, state FROM relays") == [
-        (1.0, 0, 0, 0, "IDLE"), (3.0, 0, 1, 1, "PRIMING"), (5.0, 0, 1, 1, "FAULT")]
+        (1.0, 0, 0, 0, "IDLE"),
+        (3.0, 0, 1, 1, "PRIMING"),
+        (5.0, 0, 1, 1, "FAULT"),
+    ]
     s.close()
 
 

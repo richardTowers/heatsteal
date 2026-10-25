@@ -37,8 +37,9 @@ def create_app(cfg: Config, loop) -> FastAPI:
             return
         expected = f"Bearer {token}"
         if authorization is None or not hmac.compare_digest(authorization.encode(), expected.encode()):
-            raise HTTPException(status_code=401, detail="missing or wrong bearer token",
-                                headers={"WWW-Authenticate": "Bearer"})
+            raise HTTPException(
+                status_code=401, detail="missing or wrong bearer token", headers={"WWW-Authenticate": "Bearer"}
+            )
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
@@ -58,21 +59,24 @@ def create_app(cfg: Config, loop) -> FastAPI:
             return loop.recent_events(limit)
         except Exception as e:
             log.warning("reading events failed: %s", e)
-            raise HTTPException(status_code=503, detail=f"event log unavailable: {e}")
+            raise HTTPException(status_code=503, detail=f"event log unavailable: {e}") from e
 
     @app.post("/api/command", dependencies=[Depends(require_token)])
     def command(body: CommandBody):
         if body.action == "pump" and (body.loop is None or body.seconds is None):
-            return JSONResponse(status_code=409, content={"ok": False, "state": loop.status().get("state"),
-                                                          "reason": "pump needs loop and seconds"})
+            return JSONResponse(
+                status_code=409,
+                content={"ok": False, "state": loop.status().get("state"), "reason": "pump needs loop and seconds"},
+            )
         cmd = Command(body.action, body.loop, body.seconds)
         try:
             result = loop.submit(cmd)
         except concurrent.futures.TimeoutError:
-            raise HTTPException(status_code=503, detail="controller did not answer in time")
+            raise HTTPException(status_code=503, detail="controller did not answer in time") from None
         if not result.ok:
-            return JSONResponse(status_code=409,
-                                content={"ok": False, "state": result.state.value, "reason": result.reason})
+            return JSONResponse(
+                status_code=409, content={"ok": False, "state": result.state.value, "reason": result.reason}
+            )
         return {"ok": True, "state": result.state.value}
 
     return app

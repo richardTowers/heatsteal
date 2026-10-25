@@ -32,8 +32,15 @@ def test_format_offsets_is_valid_toml():
 
 def test_format_status():
     s = {
-        "state": "FAULT", "time_in_state_s": 3.0, "p_cold_w": 20.0, "p_hot_w": None, "kj_cold": 1.5,
-        "kj_hot": 0.0, "last_fault": "hot_flow too hot", "warnings": ["w1"], "pump_job": None,
+        "state": "FAULT",
+        "time_in_state_s": 3.0,
+        "p_cold_w": 20.0,
+        "p_hot_w": None,
+        "kj_cold": 1.5,
+        "kj_hot": 0.0,
+        "last_fault": "hot_flow too hot",
+        "warnings": ["w1"],
+        "pump_job": None,
         "probes": {"hot_flow": {"celsius": None, "stale": True, "error": "probe missing"}},
         "relays": {"peltier": False, "cold_pump": True, "hot_pump": True},
     }

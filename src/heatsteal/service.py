@@ -21,13 +21,13 @@ import socket
 import sys
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from . import config as config_mod
 from . import controller, physics
 from .config import PROBES, Config
-from .model import Command, CommandResult, Event, ProbeReading, Snapshot, State
+from .model import Command, CommandResult, Event, ProbeReading, Snapshot
 from .relays import Relays, make_relays
 from .sensors import FakeBus, SensorBus, SysfsBus
 from .storage import Storage, recent_events
@@ -183,11 +183,9 @@ class ControlLoop:
         self._relays.apply(result.outputs)  # raises on an invariant breach -> crash -> all off
         self.storage.add_relays(ts, self._relays.state(), new.state)
         if old.session_start is not None and new.session_start is None:
-            sid = self.storage.session_id
+            ended = self.storage.session_id
             self.storage.end_session(ts)
-            self._record_event(
-                Event("info", f"session {sid} ended: {self.energy_cold.kilojoules:.2f} kJ stolen")
-            )
+            self._record_event(Event("info", f"session {ended} ended: {self.energy_cold.kilojoules:.2f} kJ stolen"))
 
     def tick(self) -> None:
         """Sample, step the controller, drive relays, store. Once per sample_s."""

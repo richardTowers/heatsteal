@@ -36,8 +36,10 @@ class ScriptBus:
         return list(ADDRESSES.values())
 
     def read(self, addresses):
-        return {a: RawReading(self.values.get(a)) if self.values.get(a) is not None else RawReading(None, "gone")
-                for a in addresses}
+        return {
+            a: RawReading(self.values.get(a)) if self.values.get(a) is not None else RawReading(None, "gone")
+            for a in addresses
+        }
 
 
 def test_sampler_offsets_power_and_staleness():
@@ -45,8 +47,12 @@ def test_sampler_offsets_power_and_staleness():
     bus = ScriptBus()
     t = [0.0]
     s = service.Sampler(cfg, bus, mono=lambda: t[0], wall=lambda: 1e9 + t[0])
-    bus.values = {ADDRESSES["cold_flow"]: 20.0, ADDRESSES["cold_return"]: 24.0,
-                  ADDRESSES["hot_flow"]: 35.0, ADDRESSES["hot_return"]: 31.0}
+    bus.values = {
+        ADDRESSES["cold_flow"]: 20.0,
+        ADDRESSES["cold_return"]: 24.0,
+        ADDRESSES["hot_flow"]: 35.0,
+        ADDRESSES["hot_return"]: 31.0,
+    }
     snap = s.sample()
     assert snap.probes["cold_return"].celsius == pytest.approx(24.5)  # offset applied
     assert snap.p_cold == pytest.approx(1.0 * 4.0 * 4.5)
@@ -92,8 +98,13 @@ def test_process_exits_cleanly_on_signal(tmp_path, sig):
         f'[web]\nhost = "127.0.0.1"\nport = {port}\n'
     )
     env = {**os.environ, "PYTHONUNBUFFERED": "1"}
-    p = subprocess.Popen([sys.executable, "-m", "heatsteal.service", "--config", str(cfgfile)],
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+    p = subprocess.Popen(
+        [sys.executable, "-m", "heatsteal.service", "--config", str(cfgfile)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        env=env,
+    )
     try:
         deadline = time.monotonic() + 15
         while True:
@@ -102,10 +113,13 @@ def test_process_exits_cleanly_on_signal(tmp_path, sig):
                 break
             except OSError:
                 if time.monotonic() > deadline or p.poll() is not None:
-                    raise AssertionError(p.communicate(timeout=5)[0])
+                    raise AssertionError(p.communicate(timeout=5)[0]) from None
                 time.sleep(0.1)
-        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/command", data=b'{"action":"start"}',
-                                     headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/command",
+            data=b'{"action":"start"}',
+            headers={"Content-Type": "application/json"},
+        )
         urllib.request.urlopen(req, timeout=5).read()
         p.send_signal(sig)
         out, _ = p.communicate(timeout=15)

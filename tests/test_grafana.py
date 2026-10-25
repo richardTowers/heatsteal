@@ -75,7 +75,7 @@ def test_queries_run(db, title, target):
 def test_kj_stat(db):
     t = DASH["panels"][2]["targets"][0]
     conn = sqlite3.connect(db)
-    (ts, kj), = conn.execute(t["queryText"]).fetchall()
+    ((ts, kj),) = conn.execute(t["queryText"]).fetchall()
     conn.close()
     assert kj == pytest.approx(20.0 * 29 / 1000)
 
