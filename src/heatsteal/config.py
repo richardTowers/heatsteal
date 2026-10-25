@@ -32,9 +32,9 @@ class ConfigError(ValueError):
 class RelayPins:
     """BCM pin numbers. The Waveshare board is active-low."""
 
-    peltier: int = 26
-    cold_pump: int = 20
-    hot_pump: int = 21
+    peltier: int = 21  # CH3
+    cold_pump: int = 26  # CH1
+    hot_pump: int = 20  # CH2
 
 
 @dataclass(frozen=True)

@@ -59,9 +59,9 @@ its jumpers fitted. **The board is active-low**: a LOW pin energises the relay.
 
 | Channel | BCM | Physical pin | Load |
 |---|---|---|---|
-| CH1 | 26 | 37 | Peltier (via buck converter) |
-| CH2 | 20 | 38 | Cold-loop pump |
-| CH3 | 21 | 40 | Hot-loop pump |
+| CH1 | 26 | 37 | Cold-loop pump |
+| CH2 | 20 | 38 | Hot-loop pump |
+| CH3 | 21 | 40 | Peltier (via buck converter) |
 
 The channel-to-load mapping lives in `[relays]` in the config.
 
@@ -167,7 +167,7 @@ refused unless all four are reading.
    until the login prompt.
 2. **After `systemctl stop heatsteal`.** First
    `sudo systemctl start heatsteal`, then `heatsteal start`. Within about
-   10 s you should hear CH2 and CH3 click (pumps), then CH1 (Peltier). Next,
+   10 s you should hear CH1 and CH2 click (pumps), then CH3 (Peltier). Next,
    `sudo systemctl stop heatsteal`. All LEDs must go out.
 3. **After `kill -9` of the service.** Start it again, run `heatsteal start`,
    wait for all three LEDs, then `sudo systemctl kill -s KILL heatsteal`. All
@@ -179,7 +179,7 @@ refused unless all four are reading.
    `sudo systemctl enable heatsteal`).
 
 Also check the mapping. In IDLE, `heatsteal pump cold 5` should click
-**only CH2** for 5 s, and `heatsteal pump hot 5` **only CH3**.
+**only CH1** for 5 s, and `heatsteal pump hot 5` **only CH2**.
 
 **If any of these fails, stop and report it. Do not work around it in
 software.** Tests 2 and 3 are the ones to watch. When the process exits,

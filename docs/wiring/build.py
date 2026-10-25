@@ -110,7 +110,7 @@ def draw_power() -> schemdraw.Drawing:
     # -- Peltier branch -------------------------------------------------------
     x = 2.0
     d.add(elm.Dot().at((x, top)))
-    d.add(elm.Switch().at((x, top)).down().length(3).label("K1  CH1\nCOM→NO", loc="bottom", ofst=0.3))
+    d.add(elm.Switch().at((x, top)).down().length(3).label("K3  CH3\nCOM→NO", loc="bottom", ofst=0.3))
     d.add(elm.Line().down().length(1.5))
     buck = d.add(
         elm.Ic(
@@ -158,8 +158,8 @@ def draw_power() -> schemdraw.Drawing:
     d.add(elm.Line().at(out_n).to(tec.absanchors["−"]))
 
     # -- pumps ----------------------------------------------------------------
-    _pump_branch(d, 19.8, top, bottom, "K2  CH2", "M1  cold pump", "D1")
-    _pump_branch(d, 28.0, top, bottom, "K3  CH3", "M2  hot pump", "D2")
+    _pump_branch(d, 19.8, top, bottom, "K1  CH1", "M1  cold pump", "D1")
+    _pump_branch(d, 28.0, top, bottom, "K2  CH2", "M2  hot pump", "D2")
 
     # -- notes ----------------------------------------------------------------
     notes = (
@@ -300,7 +300,7 @@ def draw_control() -> schemdraw.Drawing:
     )
     for i, (pin, _) in enumerate(relay_rows):
         d.add(elm.Line().at(a[pin]).to(rb.absanchors[f"in{i}"]))
-    loads = {1: "Peltier (via buck)", 2: "cold pump", 3: "hot pump"}
+    loads = {1: "cold pump", 2: "hot pump", 3: "Peltier (via buck)"}
     for k in (1, 2, 3):
         d.add(elm.Line().at(rb.absanchors[f"k{k}"]).right().length(1.5))
         d.add(

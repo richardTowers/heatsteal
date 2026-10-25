@@ -4,9 +4,9 @@
 hardware = "fake"          # "fake" (laptop + simulator) | "pi" (real GPIO and 1-Wire)
 
 [relays]                   # BCM pin numbers; the Waveshare board is active-low
-peltier   = 26             # CH1, physical pin 37
-cold_pump = 20             # CH2, physical pin 38
-hot_pump  = 21             # CH3, physical pin 40
+cold_pump = 26             # CH1, physical pin 37
+hot_pump  = 20             # CH2, physical pin 38
+peltier   = 21             # CH3, physical pin 40
 
 [sensors]                  # logical name -> 1-Wire address (`heatsteal sensors` lists them)
 cold_flow   = "28-000000000001"   # cold loop, leaving the box towards the headband

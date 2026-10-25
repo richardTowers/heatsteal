@@ -17,7 +17,7 @@ its layout varies between Graphviz versions.
 
 ![12 V power schematic](power.svg)
 
-The relays switch the + side of each load. CH1 switches the buck converter's
+The relays switch the + side of each load. CH3 switches the buck converter's
 *input*, so the Peltier current is still set by the buck (constant voltage,
 adjusted on the bench for about 1.5 A). The KSD9700 cutout sits in the
 Peltier's + lead, after both the relay and the buck, and is bolted to the hot
@@ -30,17 +30,17 @@ the cathode to +.
 |---|---|---|---|
 | W1a | PD trigger 12V+ | Wago 12 V+ rail | |
 | W1b | PD trigger 12V− | Wago 12 V− rail | |
-| W2a | Wago 12 V+ rail | K1 (CH1) COM | |
-| W2b | Wago 12 V+ rail | K2 (CH2) COM | |
-| W2c | Wago 12 V+ rail | K3 (CH3) COM | |
-| W3 | K1 NO | U1 buck IN+ | |
+| W2a | Wago 12 V+ rail | K1 (CH1) COM | cold pump |
+| W2b | Wago 12 V+ rail | K2 (CH2) COM | hot pump |
+| W2c | Wago 12 V+ rail | K3 (CH3) COM | Peltier |
+| W3 | K3 NO | U1 buck IN+ | |
 | W4 | U1 buck IN− | Wago 12 V− rail | |
 | W5a | U1 buck OUT+ | TS1 cutout | |
 | W5b | TS1 cutout | TEC1 Peltier + | |
 | W6 | U1 buck OUT− | TEC1 Peltier − | |
-| W7a | K2 NO | M1 cold pump + | D1 cathode here |
+| W7a | K1 NO | M1 cold pump + | D1 cathode here |
 | W7b | M1 cold pump − | Wago 12 V− rail | D1 anode at M1 − |
-| W8a | K3 NO | M2 hot pump + | D2 cathode here |
+| W8a | K2 NO | M2 hot pump + | D2 cathode here |
 | W8b | M2 hot pump − | Wago 12 V− rail | D2 anode at M2 − |
 
 Each Wago 221-415 has 5 positions. Four are used on each rail, leaving one
